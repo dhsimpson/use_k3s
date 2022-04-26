@@ -14,4 +14,28 @@ spec:
           - --insecure
 EOF
 kubectl patch deployment -n argocd argocd-server --patch-file no-tls.yml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.3/deploy/static/provider/baremetal/deploy.yaml
+kubectl delete validatingwebhookconfiguration ingress-nginx-admission
+cat <<EOF > argocd-ing.yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+spec:
+  rules:
+    - http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 443
+EOF
+kubectl apply -n argocd -f argocd-ing.yml
 
