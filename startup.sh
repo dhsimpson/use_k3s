@@ -12,5 +12,6 @@ spec:
         command: 
           - argocd-server
           - --insecure
+EOF
 kubectl patch deployment -n argocd argocd-server --patch-file no-tls.yml
 
